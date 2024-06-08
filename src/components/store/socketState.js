@@ -1,17 +1,17 @@
-import { makeAutoObservable } from "mobx"
-import teamState from "./teamState"
-import audioChat from "../services/audioChatService"
+import { makeAutoObservable } from 'mobx'
+import teamState from './teamState'
+import audioChat from '../services/audioChatService'
 
 class Socket {
   wsocket = null
-  nickname = ""
+  nickname = ''
   session = null
   isConnected = false
   errorConnection = false
   countConnected = 0
 
-  errorConnectionMsg = ""
-  serverTime = ""
+  errorConnectionMsg = ''
+  serverTime = ''
   messages = []
 
   audioClients = []
@@ -40,7 +40,7 @@ class Socket {
     try {
       this.localStream = await navigator.mediaDevices.getUserMedia(constraints)
     } catch (error) {
-      console.error("Error accessing media devices: ", error)
+      console.error('Error accessing media devices: ', error)
     }
   }
 
@@ -82,7 +82,7 @@ class Socket {
         audioChat.delPC(client)
         this.send(
           JSON.stringify({
-            method: "audioclientleave",
+            method: 'audioclientleave',
             nickname: this.nickname,
             session: this.session,
             toClient: client.nickname,
@@ -91,7 +91,7 @@ class Socket {
       })
     } else {
       this.send(
-        JSON.stringify({ method: "lastaudioleave", session: this.session })
+        JSON.stringify({ method: 'lastaudioleave', session: this.session })
       )
     }
     this.localStream.getTracks().forEach((track) => track.stop())
@@ -102,7 +102,8 @@ class Socket {
   }
 
   setSocket(callback) {
-    this.wsocket = new WebSocket(process.env.REACT_APP_SOCKET_URL)
+    this.wsocket = new WebSocket('wss://hockey-api.azurewebsites.net/echo')
+    // this.wsocket = new WebSocket(process.env.REACT_APP_SOCKET_URL)
     this.wsocket.onopen = this.socketOpen.bind(this)
     this.wsocket.onmessage = this.socketMessage.bind(this)
     this.wsocket.onclose = this.socketClose.bind(this)
@@ -112,7 +113,7 @@ class Socket {
   socketOpen() {
     this.send(
       JSON.stringify({
-        method: "connection",
+        method: 'connection',
         session: this.session,
         nickname: this.nickname,
       })
@@ -123,47 +124,47 @@ class Socket {
     let msg = JSON.parse(event.data)
 
     switch (msg.method) {
-      case "reject":
+      case 'reject':
         this.isConnected = false
         this.errorConnection = true
         this.errorConnectionMsg = msg.message
         this.wsocket.close()
         break
 
-      case "herokuConnection":
+      case 'herokuConnection':
         this.serverTime = msg.serverTime
         break
 
-      case "connected":
+      case 'connected':
         this.isConnected = true
         this.errorConnection = false
-        this.errorConnectionMsg = ""
+        this.errorConnectionMsg = ''
         this.closeDialog(false)
         if (msg.inaudio) this.setInAudio(true)
         break
 
-      case "newclient":
+      case 'newclient':
         this.countConnected = msg.number
         this.messages.push(msg)
         break
 
-      case "chat":
+      case 'chat':
         this.messages.push(msg)
         break
 
-      case "arenareq":
+      case 'arenareq':
         teamState.arenaStateResponse(msg)
         break
 
-      case "arenares":
+      case 'arenares':
         teamState.arenaSocketState(msg)
         break
 
-      case "playerchoice":
+      case 'playerchoice':
         teamState.socketPlayerChoice(msg.playerId, msg.selected)
         break
 
-      case "pointerdown":
+      case 'pointerdown':
         teamState.handleSocketDown(
           msg.arenaOrientation,
           msg.nickname,
@@ -173,7 +174,7 @@ class Socket {
         )
         break
 
-      case "pointermove":
+      case 'pointermove':
         teamState.handleSocketMove(
           msg.arenaOrientation,
           msg.playerSet.playerIndex,
@@ -182,19 +183,19 @@ class Socket {
         )
         break
 
-      case "pointerup":
+      case 'pointerup':
         teamState.handleSocketUp(msg.playerIndex)
         break
 
-      case "pointerout":
+      case 'pointerout':
         teamState.handleSocketOut(msg.playerIndex)
         break
 
-      case "inaudio":
+      case 'inaudio':
         this.setInAudio(true)
         break
 
-      case "audioclients":
+      case 'audioclients':
         this.setAudioChat(true)
         this.setInAudio(false)
         await this.setLocalStream()
@@ -204,15 +205,15 @@ class Socket {
         }
         break
 
-      case "offer":
+      case 'offer':
         await audioChat.setAnswer(msg, this.localStream)
         break
 
-      case "answer":
+      case 'answer':
         await audioChat.setDescription(msg)
         break
 
-      case "candidate":
+      case 'candidate':
         const client = this.audioClients.find(
           (client) => client.nickname === msg.nickname
         )
@@ -221,20 +222,20 @@ class Socket {
         }
         break
 
-      case "audioclientleave":
+      case 'audioclientleave':
         this.delAudioClient(msg.nickname)
         break
 
-      case "lastaudioleave":
+      case 'lastaudioleave':
         this.setInAudio(false)
         break
 
-      case "close":
+      case 'close':
         if (this.countConnected > 1) this.countConnected -= 1
         break
 
       default:
-        console.log("No match cases!", msg)
+        console.log('No match cases!', msg)
         break
     }
   }
@@ -246,14 +247,14 @@ class Socket {
     if (this.isConnected) {
       this.send(
         JSON.stringify({
-          method: "close",
+          method: 'close',
           session: this.session,
           nickname: this.nickname,
         })
       )
     }
 
-    this.nickname = ""
+    this.nickname = ''
     this.inAudio = false
     this.countConnected = 0
     this.wsocket.close()

@@ -39,4 +39,5 @@ const App = observer(() => {
     </ThemeProvider>
   )
 })
+
 export default App

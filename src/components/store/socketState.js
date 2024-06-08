@@ -102,7 +102,7 @@ class Socket {
   }
 
   setSocket(callback) {
-    this.wsocket = new WebSocket('wss://hockey-api.azurewebsites.net/echo')
+    this.wsocket = new WebSocket(process.env.REACT_APP_SOCKET_URL)
     this.wsocket.onopen = this.socketOpen.bind(this)
     this.wsocket.onmessage = this.socketMessage.bind(this)
     this.wsocket.onclose = this.socketClose.bind(this)

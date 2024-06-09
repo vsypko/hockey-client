@@ -1,2 +1,2 @@
 # hockey-client
-Hockeyteam training app
+Hockey team training app.
